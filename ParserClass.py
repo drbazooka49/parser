@@ -1,8 +1,13 @@
 import os
 import requests
 from bs4 import BeautifulSoup
-
-#TODO: from 500x500 size
+from requests_html import HTMLSession
+import time
+import re
+import json
+#TODO: from 500x500 size -- ? not sure
+HEADERS = {'User-Agent': "Mozilla/5.0"}
+COOKIES = {}
 
 #Main parser class
 class Parser:
@@ -22,7 +27,7 @@ class Parser:
         return
 
 #Child Html Parser class
-class Html(Parser):
+class Uno(Parser):
 
     def __init__(self):
         super().__init__()
@@ -85,28 +90,85 @@ class Html(Parser):
             else:
                 self.search_result(url, search)
 
-??
-class Html2(Parser):
+#Another child html Parser Class
+class Altex(Parser):
 
     def __init__(self):
         super().__init__()
 
-    def search(self, url):
-        page = requests.get_data(url)
-        self._content = bytes().join(self.iter_content(10240))
-        response_data = s.post(url=url, data=data, stream=True, verify=False).raw.read()
-        print(response_data)
-        #headers = page.requests.headers()
-        #html = page.content
-        #soup = BeautifulSoup(html, "html.parser")
-        #print(soup.prettify())
+    # check if search page result exists
+    def page_exists(self, page_to_inspect):
+        page = requests.get(page_to_inspect)
+        return page.raise_for_status()
 
+    #gets cookies from main page session
+    def get_cookies(self, session):
+        COOKIES = session.cookies.get_dict()
+
+    #gets urls of all product imgs
+    def get_imgs_urls(self, url):
+        product = requests.get(url, headers=HEADERS, cookies=COOKIES)
+        product_soup = BeautifulSoup(product.content, 'lxml')
+        imgs_urls = []
+        temp_link = ''
+        product_imgs = product_soup.findAll('img')
+        for img_link in product_imgs:
+            if re.search('/media/', str(img_link['src'])) and re.search('/product/', str(img_link['src'])):
+                img_link['src'] = re.sub('/resize', '', str(img_link['src']))
+                # TODO add if there are different patterns for naming places of original images
+                # also error messages
+                pattern = re.compile('/[^0-9]/[^0-9]/')
+                result = pattern.search(str(img_link['src']))
+                img_link['src'] = re.sub('/[^0-9]/[^0-9]/.*?/', str(result.group(0)), str(img_link['src']))
+                #to avoid identical links
+                if temp_link != img_link['src']:
+                    print(img_link['src'])
+                    temp_link = img_link['src']
+                    imgs_urls.append(img_link['src'])
+
+    # get all products from a subcategory -- only first 24
+    def get_products(self):
+        subcategory_url = 'https://altex.ro/telefoane/cpl/'
+        subcategory = requests.get(subcategory_url, headers=HEADERS, cookies=COOKIES)
+        subcategory_soup = BeautifulSoup(subcategory.content, 'html.parser')
+        products_urls = []
+        products_links = subcategory_soup.findAll("a", href=True)
+        for product_link in products_links:
+            if re.search('/cpd/', str(product_link['href'])):
+                products_urls.append(product_link['href'])
+        for product_url in products_urls:
+            self.get_imgs_urls(product_url)
+
+    # TODO get subcategories
+    def get_subcategories(self):
+        category = requests.get(category_url, headers=HEADERS, cookies=COOKIES)
+        category_soup = BeautifulSoup(category.content, 'lxml')
+        subcategories_urls = []
+        subcategories = category_soup.findAll() # if no /cpd/ links means no products, then subcategory -- гений :3
+
+        pass
+
+    #get all categories on this website
+    def get_categories(self, url):
+        session = requests.get(url, headers=HEADERS)
+        self.get_cookies(session)
+        soup = BeautifulSoup(session.content, 'lxml')
+        #print(soup.prettify())
+        categories_url = []
+        categories = soup.findAll('a', href=True)
+        for link in categories:
+            if re.search('^https', str(link['href'])) and re.search('/cpl/$', str(link['href'])):
+                categories_url.append(link['href'])
+                print(link['href'])
+        for link in categories_url:
+            pass
 
 
 if __name__ == '__main__':
-    #Url = "https://uno.md"
-    Url = "https://www.powerplanetonline.com/en/"
-    #object = Html()
-    #object.search(Url)
-    obj = Html2()
-    obj.search(Url)
+    uno = "https://uno.md"
+    altex = "https://altex.ro"
+    powerplanet = "https://www.powerplanetonline.com/en/"
+    #object = Uno()
+    #object.search(uno)
+    obj = Altex()
+    obj.get_categories(altex)
