@@ -1,0 +1,15 @@
+{% extends "navbar.html" %}
+<html>
+<head>{% block title %}NoProducts{% endblock %}</head>
+{% block content %}
+<body class="bg-dark" style="width: 100">
+    <div class="card-text-center text-white" style="width: 100">
+        <div class="card-header">No products found!Try again</div>
+        <div class="card-body">
+            <h5 class="card-title"></h5>
+            <a href={{ back_to }} class="btn btn-info">Back</a>
+        </div>
+    </div>
+</body>
+{% endblock %}
+</html>

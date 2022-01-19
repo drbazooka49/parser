@@ -1,0 +1,15 @@
+{% extends "navbar.html" %}
+{% block title %}{{ site }} Search{% endblock %}
+{% block content %}
+<form action="#" method="POST">
+    <body class="bg-dark">
+    <div class="input-group mb-3">
+        <input type="text" class="form-control" placeholder="" aria-label="Recipient's username" name="search" aria-describedby="button-addon2">
+        <div class="input-group-append">
+            <button class="btn btn-info" type="submit" id="button-addon2">Find</button>
+        </div>
+    </div>
+    </body>
+</form>
+{% endblock %}
+

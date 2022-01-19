@@ -1,0 +1,26 @@
+{% extends "navbar.html" %}
+<html>
+{% block title %}Search Results{% endblock %}</head>
+{% block content %}
+<body class="bg-dark" style="width: 100">
+    <div class="d-flex align-items-start flex-columns" style="max-width: 100">
+        <div class="row">
+            {% for key, data in imgs_dict.items() %}
+                <div class="col">
+                    <div class="card text-white bg-dark" style="width: 58rem; padding: 0;">
+                        <div class="card-header">{{ key }}</div>
+                        <div class="card-body">
+                            <ul class="list-group">
+                                {% for img in data %}
+                                    <a href={{img}} class="list-group-item list-group-item-action bg-dark text-info ">{{ img }}</a>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+        {% endfor %}
+        </div>
+    </div>
+</body>
+{% endblock %}
+</html>

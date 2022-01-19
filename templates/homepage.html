@@ -1,0 +1,18 @@
+{% extends "navbar.html" %}
+{% block title %}Home Page{% endblock %}
+{% block content %}
+<body class="bg-dark">
+    <h1 class="text-center text-white">Welcome to a simple python parser!</h1>
+    <p class="text-left text-warning px-4">To start using choose an option from the navigation bar.
+        Then insert what are you searching for :)</p>
+    <ul class="list-group list-group-flush">
+        <li class="list-group-item bg-dark text-white disabled ">Webpages that are being parsed:</li>
+        <a href="https://uno.md/" class="list-group-item text-info list-group-item-action active
+            bg-dark list-group-item-info px-5">-- Uno.md</a>
+        <a href="https://enter.online/" class="list-group-item text-info list-group-item-action active
+            bg-dark list-group-item-info px-5"> -- Enter.md</a>
+        <a href="https://darwin.md/" class="list-group-item text-info list-group-item-action active
+            bg-dark list-group-item-info px-5">-- Darwin.md</a>
+    </ul>
+</body>
+{% endblock %}
