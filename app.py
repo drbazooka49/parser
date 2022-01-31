@@ -8,13 +8,6 @@ app = Flask(__name__)
 unoClass = WebSites.Uno()
 enterClass = WebSites.Enter()
 darwinClass = WebSites.Darwin()
-'''
-with cProfile.Profile() as pr:
-    items = unoClass.to_run(search)
-    stats = pstats.Stats(pr)
-    stats.sort_stats(pstats.SortKey.TIME)
-    stats.print_stats()
-'''
 
 @app.route("/")
 def home():
@@ -24,6 +17,7 @@ def home():
 def uno():
     if request.method == "POST":
         search = request.form['search']
+        items = unoClass.to_run(search)
         print(search)
         if not items:
             back_to = '/uno/'
@@ -45,9 +39,8 @@ def enter():
         else:
             return render_template('search_results.html', imgs_dict=items)
     else:
-        site = 'Darwin'
+        site = 'Enter'
         return render_template('search.html', site=site)
-
 
 @app.route("/darwin/", methods=["POST", "GET"])
 def darwin():

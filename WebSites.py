@@ -5,6 +5,7 @@ import aiohttp
 import requests
 from bs4 import BeautifulSoup
 
+#input your browser header
 HEADERS = {'User-Agent': "Mozilla/5.0"}
 
 #main parent class
@@ -89,6 +90,7 @@ class Uno(Parser):
             imgs_dict = self.product_img_link(titles, results)
             return imgs_dict
 
+
 class Enter(Parser):
     def __init__(self):
         super().__init__()
@@ -99,9 +101,11 @@ class Enter(Parser):
         for name, product in zip(names, products):
             images = []
             product_soup = BeautifulSoup(product, 'lxml')
-            imgs = product_soup.find_all('a', {'class' : 'cm-image-previewer'})
+            imgs = product_soup.find_all('a', href=True)
             for img in imgs:
-                images.append(img['href'])
+                if re.search('data-caption', str(img)):
+                    images.append(img['href'])
+                    print(f"{img['href']}")
             imgs_dict[name] = images
         # key - name , data - list of links
         return imgs_dict
@@ -110,18 +114,17 @@ class Enter(Parser):
     def search_page(self, param):
         url = 'https://enter.online/search/?q=' + str(param)
         main = requests.get(url, headers=HEADERS)
-        COOKIES = main.cookies.get_dict()
         main_soup = BeautifulSoup(main.content, 'lxml')
         urls = []
         titles = []
-        products = main_soup.find_all('a', {'class' : "pm-product"})
-        names = main_soup.find_all('img', {'class' : 'ty-pict'})
+        products = main_soup.find_all('a', {'data-info_wrap': "true"})
         for product in products:
             if re.search('^https', str(product['href'])):
                 urls.append(product['href'])
-        for name in names:
-            titles.append(name['title'])
-        if not urls and not names:
+                titles.append(product['title'])
+                print(f"{product['href']}")
+                print(f"{product['title']}")
+        if not urls and not titles:
             return None
         else:
             return titles, urls
@@ -138,7 +141,6 @@ class Enter(Parser):
             imgs_dict = self.get_imgs_links(titles, results)
             return imgs_dict
 
-
 class Darwin(Parser):
 
     def __init__(self):
@@ -154,33 +156,36 @@ class Darwin(Parser):
             for i in imgs:
                 if re.search('/product/', str(i['src'])):
                     images.append(i['src'])
+
+            images = list(dict.fromkeys(images))
             # key - name , data - list of links
             imgs_dict[name] = images
 
         return imgs_dict
 
-    # parse main result page
     def search(self, param):
         url = "https://darwin.md/"
         search_url = str(url) + 'search?search=' + str(param)
         search = requests.get(search_url, headers=HEADERS)
-        COOKIES = search.cookies.get_dict()
         products_soup = BeautifulSoup(search.content, 'lxml')
         urls = []
         names = []
         products = products_soup.find_all('a', href=True)
+        temp_prod = ''
         for product in products:
-            if re.search('.html', str(product['href'])):
+            if re.search('.html', str(product['href'])) and product['href'] != temp_prod:
                 urls.append(product['href'])
+                temp_prod = product['href']
+        temp_name = ''
         products_names = products_soup.find_all('figcaption', {'class': "info-wrap"})
         for name in products_names:
-            names.append(name['data-prods'])
+            if name['data-prods'] != temp_name:
+                names.append(name['data-prods'])
+                temp_name = name['data-prods']
         urls.pop(0)
-        urls = list(dict.fromkeys(urls))
         if not names:
             return None
         else:
-            prod_dict = dict(zip(names, urls))
             return names, urls
 
     # run async loop
